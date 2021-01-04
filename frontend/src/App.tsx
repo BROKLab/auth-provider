@@ -1,31 +1,33 @@
+import { Box, Grommet, Main } from "grommet";
 import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import { BrowserRouter, Route, Switch } from "react-router-dom";
+import { Navigation } from './components/ui/Navigation';
 import { Symfoni } from "./hardhat/SymfoniContext";
-import { Greeter } from './components/Greeter';
+import { Home } from "./pages/Home";
+import { Footer } from "./components/ui/Footer";
+
+
 
 function App() {
-
   return (
-    <div className="App">
-      <header className="App-header">
-        <Symfoni autoInit={true} >
-          <img src={logo} className="App-logo" alt="logo" />
-          <p>
-            Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-          <a
-            className="App-link"
-            href="https://reactjs.org"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Learn React
-        </a>
-          <Greeter></Greeter>
+    <BrowserRouter basename={process.env.PUBLIC_URL}>
+      <Grommet full={true}>
+        <Symfoni autoInit={true} showLoading={true}>
+          <Box height={{ min: "100vh" }}>
+            {/* Navigation */}
+            <Navigation></Navigation>
+            {/* Content swtich */}
+            <Main pad="xlarge" height={{ min: "75vh" }} >
+              <Switch>
+                <Route exact path="/" component={Home} />
+              </Switch>
+            </Main>
+            {/* footer */}
+            <Footer></Footer>
+          </Box>
         </Symfoni>
-      </header>
-    </div>
+      </Grommet>
+    </BrowserRouter >
   );
 }
 
