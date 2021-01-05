@@ -1,9 +1,9 @@
-import axios, { AxiosError, AxiosResponse } from 'axios';
+import axios from 'axios';
 import { ethers } from 'ethers';
 import { Box, Button, Image, Paragraph } from 'grommet';
 import { Checkmark, Sign } from 'grommet-icons';
-import React, { useContext, useEffect, useState } from 'react';
-import { CurrentAddressContext, SignerContext, SymfoniContext } from '../../hardhat/SymfoniContext';
+import React, { useCallback, useContext, useEffect, useState } from 'react';
+import { SignerContext, SymfoniContext } from '../../hardhat/SymfoniContext';
 import { Loading } from '../ui/Loading';
 import BANKID_LOGO from './bankid_logo.png';
 interface Props { }
@@ -27,37 +27,17 @@ enum STATE {
 }
 
 export const Bankid: React.FC<Props> = ({ ...props }) => {
-    const [currentAddress] = useContext(CurrentAddressContext)
     const { init } = useContext(SymfoniContext)
     const [signer] = useContext(SignerContext)
     const [id_token, setIdToken] = useState<string>();
     const [verification, setVerification] = useState<VerifyResponse>();
-    const [verifying, setVerifying] = useState(false);
     const [state, setState] = useState<STATE>(STATE.DEFAULT);
     const [messages, setMessages] = useState<string[]>([]);
     const [signature, setSignature] = useState<string>();
 
-    //State machine
-    useEffect(() => {
-        if (!id_token)
-            return setState(STATE.NEED_BANKID)
-        if (!signer)
-            return setState(STATE.NEED_WALLET)
-        if (!signature) {
-            setState(STATE.NEED_SIGNATATURE)
-            sign(id_token, signer)
-            return
-        }
-        if (!verification) {
-            setState(STATE.NEED_VERIFICATION)
-            verify(id_token, signature)
-            return
-        }
-        if (verification)
-            return setState(STATE.VERIFIED)
-    }, [id_token, signer, verification, signature])
 
 
+    // get url query params( useParams does not work)
     useEffect(() => {
         let subscribed = true
         const doAsync = async () => {
@@ -80,7 +60,7 @@ export const Bankid: React.FC<Props> = ({ ...props }) => {
         console.log("Personal password", `qwer1234`)
     }, [])
 
-    const sign = async (id_token: string, _signer: ethers.Signer) => {
+    const sign = useCallback(async (id_token: string, _signer: ethers.Signer) => {
         if (!signer) {
             return setMessages(old => [...old, "Trenger lommebok med signatur rettigheter"])
         }
@@ -88,9 +68,9 @@ export const Bankid: React.FC<Props> = ({ ...props }) => {
         const tokenHashBytes = ethers.utils.arrayify(tokenHash);
         const signature = await _signer.signMessage(tokenHashBytes);
         setSignature(signature)
-    }
+    }, [signer])
 
-    const verify = async (bankidToken: string, signature: string) => {
+    const verify = useCallback(async (bankidToken: string, signature: string) => {
         try {
             const verificationResponse = await axios.get<VerifyResponse>(authProviderURL() + "/auth/verify", {
                 params: {
@@ -110,8 +90,7 @@ export const Bankid: React.FC<Props> = ({ ...props }) => {
             }
             setState(STATE.ERROR)
         }
-
-    }
+    }, [])
 
     const authProviderURL = () => {
         const AUTH_PROVIDER_URL = process.env.REACT_APP_AUTH_PROVIDER_URL
@@ -137,6 +116,26 @@ export const Bankid: React.FC<Props> = ({ ...props }) => {
         const url = "https://blockchangers.criipto.id/oauth2/authorize?" + queryString
         return url
     }
+
+    //State machine
+    useEffect(() => {
+        if (!id_token)
+            return setState(STATE.NEED_BANKID)
+        if (!signer)
+            return setState(STATE.NEED_WALLET)
+        if (!signature) {
+            setState(STATE.NEED_SIGNATATURE)
+            sign(id_token, signer)
+            return
+        }
+        if (!verification) {
+            setState(STATE.NEED_VERIFICATION)
+            verify(id_token, signature)
+            return
+        }
+        if (verification)
+            return setState(STATE.VERIFIED)
+    }, [id_token, signer, verification, signature, sign, verify])
 
     return (
         <Box gap="large" width="70vw" >

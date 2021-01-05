@@ -1,5 +1,5 @@
+import { Box, Footer as GrommetFooter, Text } from 'grommet';
 import React from 'react';
-import { Box, Paragraph, Footer as GrommetFooter, Text } from 'grommet';
 
 interface Props { }
 

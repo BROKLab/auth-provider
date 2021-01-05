@@ -1,4 +1,4 @@
-import { Box, Button, Header, Heading, Text } from 'grommet';
+import { Box, Header, Heading } from 'grommet';
 import React from 'react';
 
 interface Props { }
