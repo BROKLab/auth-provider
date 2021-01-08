@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 import { ethers } from 'ethers';
 import { Box, Button, Image, Paragraph } from 'grommet';
 import { Checkmark, Sign } from 'grommet-icons';
@@ -13,6 +13,11 @@ interface VerifyResponse {
     authToken: string
     name: string
     tx: string
+}
+
+interface AuthProviderErrorResponse {
+    message: string;
+    code: number;
 }
 
 enum STATE {
@@ -34,8 +39,15 @@ export const Bankid: React.FC<Props> = ({ ...props }) => {
     const [state, setState] = useState<STATE>(STATE.DEFAULT);
     const [messages, setMessages] = useState<string[]>([]);
     const [signature, setSignature] = useState<string>();
+    const [unclaimed, setUnclaimed] = useState<any[]>([]);
 
-
+    useEffect(() => {
+        console.log("Fnr", `11126138727`)
+        console.log("Fnr", `14102123973`)
+        console.log("Fnr", `26090286144`)
+        console.log("One - time password", `otp`)
+        console.log("Personal password", `qwer1234`)
+    }, [])
 
     // get url query params( useParams does not work)
     useEffect(() => {
@@ -51,15 +63,7 @@ export const Bankid: React.FC<Props> = ({ ...props }) => {
         doAsync();
         return () => { subscribed = false }
     }, [])
-
-    useEffect(() => {
-        console.log("Fnr", `11126138727`)
-        console.log("Fnr", `14102123973`)
-        console.log("Fnr", `26090286144`)
-        console.log("One - time password", `otp`)
-        console.log("Personal password", `qwer1234`)
-    }, [])
-
+    console.log(ethers.utils.keccak256(ethers.utils.id("14102123973")))
     const sign = useCallback(async (id_token: string, _signer: ethers.Signer) => {
         if (!signer) {
             return setMessages(old => [...old, "Trenger lommebok med signatur rettigheter"])
@@ -72,22 +76,73 @@ export const Bankid: React.FC<Props> = ({ ...props }) => {
 
     const verify = useCallback(async (bankidToken: string, signature: string) => {
         try {
-            const verificationResponse = await axios.get<VerifyResponse>(authProviderURL() + "/auth/verify", {
+            const res = await axios.get<VerifyResponse>(authProviderURL() + "/auth/verify", {
                 params: {
                     bankIdToken: bankidToken,
                     signature: signature,
                     // skipToken: true,
                     // skipBlockchain: true
                 }
+            }).catch((error: AxiosError<AuthProviderErrorResponse>) => {
+                if (error.response && error.response.data.message) {
+                    throw Error(error.response.data.message);
+                }
+                throw Error(error.message);
             })
-            setVerification(verificationResponse.data)
-        } catch (error) {
-            const message = error.response?.data.message
-            if (message) {
-                setMessages(old => [...old, message])
-            } else {
-                setMessages(old => [...old, error.message])
+            if (res.status === 200) {
+                if (res.data) {
+                    setVerification(res.data)
+                }
             }
+        } catch (error) {
+            setMessages(old => [...old, error.message])
+            setState(STATE.ERROR)
+        }
+    }, [])
+
+    const checkClaims = useCallback(async (authToken: string) => {
+        try {
+            const res = await axios.get<{ addresses: any[] }>(authProviderURL() + "/brreg/unclaimed/list", {
+                headers: {
+                    Authorization: "Bearer " + authToken,
+                }
+            }).catch((error: AxiosError<AuthProviderErrorResponse>) => {
+                if (error.response && error.response.data.message) {
+                    throw Error(error.response.data.message);
+                }
+                throw Error(error.message);
+            })
+            if (res.status === 200) {
+                if (res.data && "addresses" in res.data && Array.isArray(res.data.addresses)) {
+                    console.log(res.data.addresses)
+                    setUnclaimed(res.data.addresses)
+                }
+            }
+        } catch (error) {
+            setMessages(old => [...old, error.message])
+            setState(STATE.ERROR)
+        }
+    }, [])
+
+    const processClaims = useCallback(async (authToken: string) => {
+        try {
+            const res = await axios.get<{ addresses: any[] }>(authProviderURL() + "/brreg/unclaimed/list", {
+                headers: {
+                    Authorization: "Bearer " + authToken,
+                }
+            }).catch((error: AxiosError<AuthProviderErrorResponse>) => {
+                if (error.response && error.response.data.message) {
+                    throw Error(error.response.data.message);
+                }
+                throw Error(error.message);
+            })
+            if (res.status === 200) {
+                if (res.data && "addresses" in res.data && Array.isArray(res.data.addresses)) {
+                    setUnclaimed(res.data.addresses)
+                }
+            }
+        } catch (error) {
+            setMessages(old => [...old, error.message])
             setState(STATE.ERROR)
         }
     }, [])
@@ -99,6 +154,7 @@ export const Bankid: React.FC<Props> = ({ ...props }) => {
         }
         return AUTH_PROVIDER_URL
     }
+
     const bankidLoginURL = () => {
         if (!process.env.REACT_APP_BANKID_CALLBACK_URL) {
             throw Error("Please set REACT_APP_BANKID_CALLBACK_URL env variable")
@@ -133,8 +189,10 @@ export const Bankid: React.FC<Props> = ({ ...props }) => {
             verify(id_token, signature)
             return
         }
-        if (verification)
+        if (verification) {
+            checkClaims(verification.authToken)
             return setState(STATE.VERIFIED)
+        }
     }, [id_token, signer, verification, signature, sign, verify])
 
     return (
@@ -151,12 +209,6 @@ export const Bankid: React.FC<Props> = ({ ...props }) => {
                     <Button label="Koble til Lommebok" onClick={() => init("web3modal")}></Button>
                 </Box>
             }
-            {state === STATE.VERIFIED &&
-                <Box elevation="large" pad="large" style={{ minHeight: "50vh" }} align="center" justify="center">
-                    <Paragraph>Du er autentisert som {verification?.name}</Paragraph>
-                    <Checkmark color="green" size="large"></Checkmark>
-                </Box>
-            }
             {state === STATE.NEED_SIGNATATURE &&
                 <Box elevation="large" pad="large" style={{ minHeight: "50vh" }} align="center" justify="center">
                     <Paragraph>Signer meldingen for å bekrefte identitet</Paragraph>
@@ -169,7 +221,18 @@ export const Bankid: React.FC<Props> = ({ ...props }) => {
                     <Loading></Loading>
                 </Box>
             }
-
+            {state === STATE.VERIFIED &&
+                <Box elevation="large" pad="large" style={{ minHeight: "50vh" }} align="center" justify="center">
+                    <Paragraph>Du er autentisert som {verification?.name}</Paragraph>
+                    <Checkmark color="green" size="large"></Checkmark>
+                    {unclaimed.length > 0 && verification?.authToken &&
+                        <Box>
+                            <Paragraph>Du har uavhentet transaksjoner</Paragraph>
+                            <Button label="Hent transaksjoner" onClick={() => processClaims(verification.authToken)}></Button>
+                        </Box>
+                    }
+                </Box>
+            }
 
             {messages.length > 0 &&
                 <Box elevation="large" pad="large" align="center" justify="center">
