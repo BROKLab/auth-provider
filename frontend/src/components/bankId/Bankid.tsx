@@ -126,7 +126,7 @@ export const Bankid: React.FC<Props> = ({ ...props }) => {
 
     const processClaims = useCallback(async (authToken: string) => {
         try {
-            const res = await axios.get<{ addresses: any[] }>(authProviderURL() + "/brreg/unclaimed/list", {
+            const res = await axios.get<{ addresses: any[] }>(authProviderURL() + "/brreg/unclaimed/process", {
                 headers: {
                     Authorization: "Bearer " + authToken,
                 }
@@ -137,8 +137,8 @@ export const Bankid: React.FC<Props> = ({ ...props }) => {
                 throw Error(error.message);
             })
             if (res.status === 200) {
-                if (res.data && "addresses" in res.data && Array.isArray(res.data.addresses)) {
-                    setUnclaimed(res.data.addresses)
+                if (res.data) {
+                    console.log(res.data)
                 }
             }
         } catch (error) {
@@ -193,7 +193,7 @@ export const Bankid: React.FC<Props> = ({ ...props }) => {
             checkClaims(verification.authToken)
             return setState(STATE.VERIFIED)
         }
-    }, [id_token, signer, verification, signature, sign, verify])
+    }, [id_token, signer, verification, signature, sign, verify, checkClaims])
 
     return (
         <Box gap="large" width="70vw" >

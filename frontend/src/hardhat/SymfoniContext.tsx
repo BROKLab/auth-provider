@@ -125,8 +125,8 @@ export const Symfoni: React.FC<SymfoniProps> = ({
             case "web3modal":
                 const web3provider = _provider as ethers.providers.Web3Provider
                 return await web3provider.getSigner()
-            // case "hardhat":
-            //     return ethers.Wallet.fromMnemonic("test test test test test test test test test test test junk").connect(_provider)
+            case "hardhat":
+                return ethers.Wallet.fromMnemonic("test test test test test test test test test test test junk").connect(_provider)
             default:
                 return undefined
         }

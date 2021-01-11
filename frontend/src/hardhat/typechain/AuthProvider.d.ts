@@ -26,7 +26,9 @@ interface AuthProviderInterface extends ethers.utils.Interface {
     "controllers()": FunctionFragment;
     "hasAuthenticated(address,uint256)": FunctionFragment;
     "isAuthenticated(address)": FunctionFragment;
+    "lastAuth(address)": FunctionFragment;
     "setControllers(address[])": FunctionFragment;
+    "setTTL(uint256)": FunctionFragment;
   };
 
   encodeFunctionData(
@@ -45,9 +47,14 @@ interface AuthProviderInterface extends ethers.utils.Interface {
     functionFragment: "isAuthenticated",
     values: [string]
   ): string;
+  encodeFunctionData(functionFragment: "lastAuth", values: [string]): string;
   encodeFunctionData(
     functionFragment: "setControllers",
     values: [string[]]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "setTTL",
+    values: [BigNumberish]
   ): string;
 
   decodeFunctionResult(
@@ -66,10 +73,12 @@ interface AuthProviderInterface extends ethers.utils.Interface {
     functionFragment: "isAuthenticated",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "lastAuth", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "setControllers",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "setTTL", data: BytesLike): Result;
 
   events: {};
 }
@@ -112,7 +121,7 @@ export class AuthProvider extends Contract {
 
     hasAuthenticated(
       addr: string,
-      timestamp: BigNumberish,
+      latestAcceptedTimestamp: BigNumberish,
       overrides?: CallOverrides
     ): Promise<{
       0: boolean;
@@ -120,7 +129,7 @@ export class AuthProvider extends Contract {
 
     "hasAuthenticated(address,uint256)"(
       addr: string,
-      timestamp: BigNumberish,
+      latestAcceptedTimestamp: BigNumberish,
       overrides?: CallOverrides
     ): Promise<{
       0: boolean;
@@ -140,6 +149,20 @@ export class AuthProvider extends Contract {
       0: boolean;
     }>;
 
+    lastAuth(
+      addr: string,
+      overrides?: CallOverrides
+    ): Promise<{
+      0: BigNumber;
+    }>;
+
+    "lastAuth(address)"(
+      addr: string,
+      overrides?: CallOverrides
+    ): Promise<{
+      0: BigNumber;
+    }>;
+
     setControllers(
       operators: string[],
       overrides?: Overrides
@@ -147,6 +170,16 @@ export class AuthProvider extends Contract {
 
     "setControllers(address[])"(
       operators: string[],
+      overrides?: Overrides
+    ): Promise<ContractTransaction>;
+
+    setTTL(
+      time: BigNumberish,
+      overrides?: Overrides
+    ): Promise<ContractTransaction>;
+
+    "setTTL(uint256)"(
+      time: BigNumberish,
       overrides?: Overrides
     ): Promise<ContractTransaction>;
   };
@@ -167,13 +200,13 @@ export class AuthProvider extends Contract {
 
   hasAuthenticated(
     addr: string,
-    timestamp: BigNumberish,
+    latestAcceptedTimestamp: BigNumberish,
     overrides?: CallOverrides
   ): Promise<boolean>;
 
   "hasAuthenticated(address,uint256)"(
     addr: string,
-    timestamp: BigNumberish,
+    latestAcceptedTimestamp: BigNumberish,
     overrides?: CallOverrides
   ): Promise<boolean>;
 
@@ -184,6 +217,13 @@ export class AuthProvider extends Contract {
     overrides?: CallOverrides
   ): Promise<boolean>;
 
+  lastAuth(addr: string, overrides?: CallOverrides): Promise<BigNumber>;
+
+  "lastAuth(address)"(
+    addr: string,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
   setControllers(
     operators: string[],
     overrides?: Overrides
@@ -191,6 +231,16 @@ export class AuthProvider extends Contract {
 
   "setControllers(address[])"(
     operators: string[],
+    overrides?: Overrides
+  ): Promise<ContractTransaction>;
+
+  setTTL(
+    time: BigNumberish,
+    overrides?: Overrides
+  ): Promise<ContractTransaction>;
+
+  "setTTL(uint256)"(
+    time: BigNumberish,
     overrides?: Overrides
   ): Promise<ContractTransaction>;
 
@@ -208,13 +258,13 @@ export class AuthProvider extends Contract {
 
     hasAuthenticated(
       addr: string,
-      timestamp: BigNumberish,
+      latestAcceptedTimestamp: BigNumberish,
       overrides?: CallOverrides
     ): Promise<boolean>;
 
     "hasAuthenticated(address,uint256)"(
       addr: string,
-      timestamp: BigNumberish,
+      latestAcceptedTimestamp: BigNumberish,
       overrides?: CallOverrides
     ): Promise<boolean>;
 
@@ -225,6 +275,13 @@ export class AuthProvider extends Contract {
       overrides?: CallOverrides
     ): Promise<boolean>;
 
+    lastAuth(addr: string, overrides?: CallOverrides): Promise<BigNumber>;
+
+    "lastAuth(address)"(
+      addr: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     setControllers(
       operators: string[],
       overrides?: CallOverrides
@@ -232,6 +289,13 @@ export class AuthProvider extends Contract {
 
     "setControllers(address[])"(
       operators: string[],
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    setTTL(time: BigNumberish, overrides?: CallOverrides): Promise<void>;
+
+    "setTTL(uint256)"(
+      time: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
   };
@@ -252,13 +316,13 @@ export class AuthProvider extends Contract {
 
     hasAuthenticated(
       addr: string,
-      timestamp: BigNumberish,
+      latestAcceptedTimestamp: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     "hasAuthenticated(address,uint256)"(
       addr: string,
-      timestamp: BigNumberish,
+      latestAcceptedTimestamp: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -272,6 +336,13 @@ export class AuthProvider extends Contract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    lastAuth(addr: string, overrides?: CallOverrides): Promise<BigNumber>;
+
+    "lastAuth(address)"(
+      addr: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     setControllers(
       operators: string[],
       overrides?: Overrides
@@ -279,6 +350,13 @@ export class AuthProvider extends Contract {
 
     "setControllers(address[])"(
       operators: string[],
+      overrides?: Overrides
+    ): Promise<BigNumber>;
+
+    setTTL(time: BigNumberish, overrides?: Overrides): Promise<BigNumber>;
+
+    "setTTL(uint256)"(
+      time: BigNumberish,
       overrides?: Overrides
     ): Promise<BigNumber>;
   };
@@ -300,13 +378,13 @@ export class AuthProvider extends Contract {
 
     hasAuthenticated(
       addr: string,
-      timestamp: BigNumberish,
+      latestAcceptedTimestamp: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     "hasAuthenticated(address,uint256)"(
       addr: string,
-      timestamp: BigNumberish,
+      latestAcceptedTimestamp: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -320,6 +398,16 @@ export class AuthProvider extends Contract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
+    lastAuth(
+      addr: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    "lastAuth(address)"(
+      addr: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
     setControllers(
       operators: string[],
       overrides?: Overrides
@@ -327,6 +415,16 @@ export class AuthProvider extends Contract {
 
     "setControllers(address[])"(
       operators: string[],
+      overrides?: Overrides
+    ): Promise<PopulatedTransaction>;
+
+    setTTL(
+      time: BigNumberish,
+      overrides?: Overrides
+    ): Promise<PopulatedTransaction>;
+
+    "setTTL(uint256)"(
+      time: BigNumberish,
       overrides?: Overrides
     ): Promise<PopulatedTransaction>;
   };

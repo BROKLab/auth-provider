@@ -4,10 +4,8 @@ pragma solidity ^0.7.0;
 import "hardhat/console.sol";
 
 contract AuthProvider {
-    mapping (address => uint) internal _auth;
-    uint _ttl = 5 minutes;
-
-
+    mapping(address => uint256) internal _auth;
+    uint256 internal _ttl = 5 minutes;
 
     address[] internal _controllers;
     mapping(address => bool) internal _isController;
@@ -16,20 +14,37 @@ contract AuthProvider {
         _setControllers(operators);
     }
 
-    function authenticate(address addr) external {
-        require(_isController[msg.sender], "msg.sender is not controller");
-        _auth[addr] = block.timestamp + _ttl;
+    function lastAuth(address addr) external view returns (uint256) {
+        return _auth[addr];
     }
 
-    function hasAuthenticated(address addr, uint timestamp) public view returns (bool){
-           if (timestamp >= _auth[addr]) {    
+    function authenticate(address addr) external {
+        require(_isController[msg.sender], "msg.sender is not controller");
+        _auth[addr] = block.timestamp;
+    }
+
+    function hasAuthenticated(address addr, uint256 latestAcceptedTimestamp)
+        public
+        view
+        returns (bool)
+    {
+        uint256 authTimestamp = _auth[addr];
+        if (
+            authTimestamp != uint256(0) &&
+            authTimestamp >= latestAcceptedTimestamp
+        ) {
             return true;
         }
         return false;
     }
 
-    function isAuthenticated(address addr) external view returns(bool){
-        return hasAuthenticated(addr, block.timestamp);
+    function isAuthenticated(address addr) external view returns (bool) {
+        return hasAuthenticated(addr, block.timestamp - _ttl);
+    }
+
+    function setTTL(uint256 time) external {
+        require(_isController[msg.sender], "msg.sender is not controller");
+        _ttl = time;
     }
 
     function controllers() external view returns (address[] memory) {
