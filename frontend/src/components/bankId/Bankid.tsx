@@ -76,6 +76,7 @@ export const Bankid: React.FC<Props> = ({ ...props }) => {
 
     const verify = useCallback(async (bankidToken: string, signature: string) => {
         try {
+            setState(STATE.VERIFIYING)
             const res = await axios.get<VerifyResponse>(authProviderURL() + "/auth/verify", {
                 params: {
                     bankIdToken: bankidToken,
