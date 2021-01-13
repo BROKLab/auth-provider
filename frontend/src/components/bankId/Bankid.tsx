@@ -1,7 +1,7 @@
 import axios, { AxiosError } from 'axios';
 import { ethers } from 'ethers';
 import { Box, Button, Image, Paragraph } from 'grommet';
-import { Checkmark, Sign } from 'grommet-icons';
+import { Checkmark, ShieldSecurity, UserAdmin } from 'grommet-icons';
 import React, { useCallback, useContext, useEffect, useState } from 'react';
 import { SignerContext, SymfoniContext } from '../../hardhat/SymfoniContext';
 import { Loading } from '../ui/Loading';
@@ -40,6 +40,7 @@ export const Bankid: React.FC<Props> = ({ ...props }) => {
     const [messages, setMessages] = useState<string[]>([]);
     const [signature, setSignature] = useState<string>();
     const [unclaimed, setUnclaimed] = useState<any[]>([]);
+    const [claimProcessed, setClaimProcessed] = useState(false);
 
     useEffect(() => {
         console.log("Fnr", `11126138727`)
@@ -139,7 +140,8 @@ export const Bankid: React.FC<Props> = ({ ...props }) => {
             })
             if (res.status === 200) {
                 if (res.data) {
-                    console.log(res.data)
+                    setUnclaimed([])
+                    setClaimProcessed(true)
                 }
             }
         } catch (error) {
@@ -213,7 +215,7 @@ export const Bankid: React.FC<Props> = ({ ...props }) => {
             {state === STATE.NEED_SIGNATATURE &&
                 <Box elevation="large" pad="large" style={{ minHeight: "50vh" }} align="center" justify="center">
                     <Paragraph>Signer meldingen for å bekrefte identitet</Paragraph>
-                    <Sign color="black" size="large"></Sign>
+                    <UserAdmin color="black" size="large"></UserAdmin>
                 </Box>
             }
             {state === STATE.VERIFIYING &&
@@ -230,6 +232,12 @@ export const Bankid: React.FC<Props> = ({ ...props }) => {
                         <Box>
                             <Paragraph>Du har uavhentet transaksjoner</Paragraph>
                             <Button label="Hent transaksjoner" onClick={() => processClaims(verification.authToken)}></Button>
+                        </Box>
+                    }
+                    {claimProcessed &&
+                        <Box>
+                            <Paragraph>Transaksjoner opphentet</Paragraph>
+                            <ShieldSecurity color="green" size="large"></ShieldSecurity>
                         </Box>
                     }
                 </Box>
