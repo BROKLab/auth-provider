@@ -235,7 +235,7 @@ export const Bankid: React.FC<Props> = ({ ...props }) => {
                         </Box>
                     }
                     {claimProcessed &&
-                        <Box>
+                        <Box align="center">
                             <Paragraph>Transaksjoner opphentet</Paragraph>
                             <ShieldSecurity color="green" size="large"></ShieldSecurity>
                         </Box>
