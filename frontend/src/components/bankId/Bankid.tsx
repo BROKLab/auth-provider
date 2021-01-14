@@ -168,6 +168,9 @@ export const Bankid: React.FC<Props> = ({ ...props }) => {
         if (!process.env.REACT_APP_BANKID_ACR_VALUES) {
             throw Error("Please set REACT_APP_BANKID_ACR_VALUES env variable")
         }
+        if (!process.env.REACT_APP_BANKID_URL) {
+            throw Error("Please set REACT_APP_BANKID_URL env variable")
+        }
         const params: { [s: string]: string } = {
             response_type: "id_token",
             client_id: process.env.REACT_APP_BANKID_CLIENT_ID,
@@ -178,7 +181,7 @@ export const Bankid: React.FC<Props> = ({ ...props }) => {
         const queryString = Object.keys(params).map((key) => {
             return encodeURIComponent(key) + '=' + encodeURIComponent(params[key])
         }).join('&');
-        const url = "https://blockchangers.criipto.id/oauth2/authorize?" + queryString
+        const url = process.env.REACT_APP_BANKID_URL + queryString
         return url
     }
 
