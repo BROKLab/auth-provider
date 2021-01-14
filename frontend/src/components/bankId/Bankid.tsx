@@ -162,11 +162,17 @@ export const Bankid: React.FC<Props> = ({ ...props }) => {
         if (!process.env.REACT_APP_BANKID_CALLBACK_URL) {
             throw Error("Please set REACT_APP_BANKID_CALLBACK_URL env variable")
         }
+        if (!process.env.REACT_APP_BANKID_CLIENT_ID) {
+            throw Error("Please set REACT_APP_BANKID_CLIENT_ID env variable")
+        }
+        if (!process.env.REACT_APP_BANKID_ACR_VALUES) {
+            throw Error("Please set REACT_APP_BANKID_ACR_VALUES env variable")
+        }
         const params: { [s: string]: string } = {
             response_type: "id_token",
-            client_id: "urn:my:application:identifier:8060",
+            client_id: process.env.REACT_APP_BANKID_CLIENT_ID,
             redirect_uri: process.env.REACT_APP_BANKID_CALLBACK_URL,
-            acr_values: "urn:grn:authn:no:bankid:central",
+            acr_values: process.env.REACT_APP_BANKID_ACR_VALUES,
             scope: "openid"
         }
         const queryString = Object.keys(params).map((key) => {
