@@ -8,7 +8,7 @@ export const Navigation: React.FC<Props> = () => {
     return (
         <Header background="brand-contrast" pad="small" height={{ min: "15vh" }}>
             <Box>
-                <Heading level="2"  >Symfoni autentisering</Heading>
+                <Heading level="2">BankID autentisering</Heading>
             </Box>
             <Box direction="row" gap="small" >
                 {/* <Link to="/something">
