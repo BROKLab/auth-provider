@@ -46,6 +46,7 @@ export const Bankid: React.FC<Props> = ({ ...props }) => {
         console.log("Fnr", `11126138727`)
         console.log("Fnr", `14102123973`)
         console.log("Fnr", `26090286144`)
+        console.log("Fnr", `09050319935`, 'Jon')
         console.log("One - time password", `otp`)
         console.log("Personal password", `qwer1234`)
     }, [])
