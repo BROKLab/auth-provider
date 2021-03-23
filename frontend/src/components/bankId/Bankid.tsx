@@ -20,15 +20,15 @@ interface AuthProviderErrorResponse {
     code: number;
 }
 
-const AUTH_PROVIDER_URL = process.env.REACT_APP_AUTH_PROVIDER_URL
-if (!AUTH_PROVIDER_URL) throw Error("Please set REACT_APP_AUTH_PROVIDER_URL in env variable")
+const AUTH_PROVIDER_URL = process.env.REACT_APP_AUTH_BOT_URL
+if (!AUTH_PROVIDER_URL) throw Error("Please set REACT_APP_AUTH_BOT_URL in env variable")
 const AUTH_PROVIDER_VERIFY_BANKID_ENDPOINT = "/auth/bankid/verify"
 
 
 enum STATE {
     DEFAULT,
     NEED_BANKID,
-    NEED_WALLET,
+    NEED_SIGNER,
     NEED_VERIFICATION,
     NEED_SIGNATATURE,
     VERIFIED,
@@ -44,8 +44,7 @@ export const Bankid: React.FC<Props> = ({ ...props }) => {
     const [state, setState] = useState<STATE>(STATE.DEFAULT);
     const [messages, setMessages] = useState<string[]>([]);
     const [signature, setSignature] = useState<string>();
-    const [unclaimed, setUnclaimed] = useState<any[]>([]);
-    const [claimProcessed, setClaimProcessed] = useState(false);
+
 
     useEffect(() => {
         console.log("Fnr", `11126138727`)
@@ -83,7 +82,7 @@ export const Bankid: React.FC<Props> = ({ ...props }) => {
     const verify = useCallback(async (bankidToken: string, signature: string) => {
         try {
             setState(STATE.VERIFIYING)
-            const res = await axios.get<VerifyResponse>(AUTH_PROVIDER_URL + "/auth/verify", {
+            const res = await axios.get<VerifyResponse>(AUTH_PROVIDER_URL + AUTH_PROVIDER_VERIFY_BANKID_ENDPOINT, {
                 params: {
                     bankIdToken: bankidToken,
                     signature: signature,
@@ -141,7 +140,7 @@ export const Bankid: React.FC<Props> = ({ ...props }) => {
         if (!id_token)
             return setState(STATE.NEED_BANKID)
         if (!signer)
-            return setState(STATE.NEED_WALLET)
+            return setState(STATE.NEED_SIGNER)
         if (!signature) {
             setState(STATE.NEED_SIGNATATURE)
             sign(id_token, signer)
@@ -163,7 +162,7 @@ export const Bankid: React.FC<Props> = ({ ...props }) => {
                     <Button label=" " size="large" color="brand" icon={<Image height="20px" width="auto" src={BANKID_LOGO}></Image>} onClick={() => window.location.href = bankidLoginURL()} hoverIndicator></Button>
                 </Box>
             }
-            {state === STATE.NEED_WALLET &&
+            {state === STATE.NEED_SIGNER &&
                 <Box elevation="large" pad="large" style={{ minHeight: "50vh" }} align="center" justify="center">
                     <Paragraph>Koble deg til med en lommebok</Paragraph>
                     <Button label="Koble til Lommebok" onClick={() => init("web3modal")}></Button>
