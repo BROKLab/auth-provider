@@ -20,6 +20,11 @@ interface AuthProviderErrorResponse {
     code: number;
 }
 
+const AUTH_PROVIDER_URL = process.env.REACT_APP_AUTH_PROVIDER_URL
+if (!AUTH_PROVIDER_URL) throw Error("Please set REACT_APP_AUTH_PROVIDER_URL in env variable")
+const AUTH_PROVIDER_VERIFY_BANKID_ENDPOINT = "/auth/bankid/verify"
+
+
 enum STATE {
     DEFAULT,
     NEED_BANKID,
@@ -65,7 +70,6 @@ export const Bankid: React.FC<Props> = ({ ...props }) => {
         doAsync();
         return () => { subscribed = false }
     }, [])
-    console.log(ethers.utils.keccak256(ethers.utils.id("14102123973")))
     const sign = useCallback(async (id_token: string, _signer: ethers.Signer) => {
         if (!signer) {
             return setMessages(old => [...old, "Trenger lommebok med signatur rettigheter"])
@@ -79,7 +83,7 @@ export const Bankid: React.FC<Props> = ({ ...props }) => {
     const verify = useCallback(async (bankidToken: string, signature: string) => {
         try {
             setState(STATE.VERIFIYING)
-            const res = await axios.get<VerifyResponse>(authProviderURL() + "/auth/verify", {
+            const res = await axios.get<VerifyResponse>(AUTH_PROVIDER_URL + "/auth/verify", {
                 params: {
                     bankIdToken: bankidToken,
                     signature: signature,
@@ -103,61 +107,7 @@ export const Bankid: React.FC<Props> = ({ ...props }) => {
         }
     }, [])
 
-    const checkClaims = useCallback(async (authToken: string) => {
-        try {
-            const res = await axios.get<{ addresses: any[] }>(authProviderURL() + "/brreg/unclaimed/list", {
-                headers: {
-                    Authorization: "Bearer " + authToken,
-                }
-            }).catch((error: AxiosError<AuthProviderErrorResponse>) => {
-                if (error.response && error.response.data.message) {
-                    throw Error(error.response.data.message);
-                }
-                throw Error(error.message);
-            })
-            if (res.status === 200) {
-                if (res.data && "addresses" in res.data && Array.isArray(res.data.addresses)) {
-                    console.log(res.data.addresses)
-                    setUnclaimed(res.data.addresses)
-                }
-            }
-        } catch (error) {
-            setMessages(old => [...old, error.message])
-            setState(STATE.ERROR)
-        }
-    }, [])
 
-    const processClaims = useCallback(async (authToken: string) => {
-        try {
-            const res = await axios.get<{ addresses: any[] }>(authProviderURL() + "/brreg/unclaimed/process", {
-                headers: {
-                    Authorization: "Bearer " + authToken,
-                }
-            }).catch((error: AxiosError<AuthProviderErrorResponse>) => {
-                if (error.response && error.response.data.message) {
-                    throw Error(error.response.data.message);
-                }
-                throw Error(error.message);
-            })
-            if (res.status === 200) {
-                if (res.data) {
-                    setUnclaimed([])
-                    setClaimProcessed(true)
-                }
-            }
-        } catch (error) {
-            setMessages(old => [...old, error.message])
-            setState(STATE.ERROR)
-        }
-    }, [])
-
-    const authProviderURL = () => {
-        const AUTH_PROVIDER_URL = process.env.REACT_APP_AUTH_PROVIDER_URL
-        if (!AUTH_PROVIDER_URL) {
-            throw Error("Please set REACT_APP_AUTH_PROVIDER_URL in env variable")
-        }
-        return AUTH_PROVIDER_URL
-    }
 
     const bankidLoginURL = () => {
         if (!process.env.REACT_APP_BANKID_CALLBACK_URL) {
@@ -202,11 +152,8 @@ export const Bankid: React.FC<Props> = ({ ...props }) => {
             verify(id_token, signature)
             return
         }
-        if (verification) {
-            checkClaims(verification.authToken)
-            return setState(STATE.VERIFIED)
-        }
-    }, [id_token, signer, verification, signature, sign, verify, checkClaims])
+
+    }, [id_token, signer, verification, signature, sign, verify])
 
     return (
         <Box gap="large" width="70vw" >
@@ -238,18 +185,7 @@ export const Bankid: React.FC<Props> = ({ ...props }) => {
                 <Box elevation="large" pad="large" style={{ minHeight: "50vh" }} align="center" justify="center">
                     <Paragraph>Du er autentisert som {verification?.name}</Paragraph>
                     <Checkmark color="green" size="large"></Checkmark>
-                    {unclaimed.length > 0 && verification?.authToken &&
-                        <Box>
-                            <Paragraph>Du har uavhentet transaksjoner</Paragraph>
-                            <Button label="Hent transaksjoner" onClick={() => processClaims(verification.authToken)}></Button>
-                        </Box>
-                    }
-                    {claimProcessed &&
-                        <Box align="center">
-                            <Paragraph>Transaksjoner opphentet</Paragraph>
-                            <ShieldSecurity color="green" size="large"></ShieldSecurity>
-                        </Box>
-                    }
+
                 </Box>
             }
 

@@ -24,12 +24,19 @@ task("accounts", "Prints the list of accounts", async (args, hre) => {
  */
 const config: HardhatUserConfig = {
   react: {
-    providerPriority: ["web3modal", "hardhat"],
+    providerPriority: ["besuDev", "web3modal", "hardhat"],
   },
   networks: {
     brreg: {
       url:
         "https://e0cteq8qnh:IY2scS2ywMZkinR5m4sS7GBs7EDgm4Mh9F1uUVkmKFI@e0qchlost7-e0zi3w4q2r-rpc.de0-aws.kaleido.io",
+      providerType: "JsonRpcProvider",
+      accounts: {
+        mnemonic: "test test test test test test test test test test test junk",
+      },
+    },
+    besuDev: {
+      url: "http://localhost:8545",
       providerType: "JsonRpcProvider",
       accounts: {
         mnemonic: "test test test test test test test test test test test junk",

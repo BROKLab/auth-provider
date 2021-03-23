@@ -4,10 +4,10 @@
 import { providers, Signer, ethers } from "ethers";
 import React, { useEffect, useState } from "react";
 import Web3Modal, { IProviderOptions } from "web3modal";
-import RoleRegistryDeployment from "./deployments/brreg/RoleRegistry.json";
+import RoleRegistryDeployment from "./deployments/besuDev/RoleRegistry.json";
 import { RoleRegistry } from "./typechain/RoleRegistry";
 import { RoleRegistry__factory } from "./typechain/factories/RoleRegistry__factory";
-import AuthProviderDeployment from "./deployments/brreg/AuthProvider.json";
+import AuthProviderDeployment from "./deployments/besuDev/AuthProvider.json";
 import { AuthProvider } from "./typechain/AuthProvider";
 import { AuthProvider__factory } from "./typechain/factories/AuthProvider__factory";
 
@@ -69,7 +69,7 @@ export const Symfoni: React.FC<SymfoniProps> = ({
     const [provider, setProvider] = useState<providers.Provider | undefined>(defaultProvider);
     const [currentAddress, setCurrentAddress] = useState<string>(defaultCurrentAddress);
     const [fallbackProvider] = useState<string | undefined>(undefined);
-    const [providerPriority, setProviderPriority] = useState<string[]>(["web3modal", "hardhat"]);
+    const [providerPriority, setProviderPriority] = useState<string[]>(["besuDev", "web3modal", "hardhat"]);
     const [RoleRegistry, setRoleRegistry] = useState<SymfoniRoleRegistry>(emptyContract);
     const [AuthProvider, setAuthProvider] = useState<SymfoniAuthProvider>(emptyContract);
     useEffect(() => {
@@ -110,6 +110,15 @@ export const Symfoni: React.FC<SymfoniProps> = ({
                                 url: "http://127.0.0.1:8545",
                             });
                             hardhatProviderName = "hardhat";
+                            return Promise.resolve(provider)
+                        } catch (error) {
+                            return Promise.resolve(undefined)
+                        } case "besuDev":
+                        try {
+                            const provider = new ethers.providers.JsonRpcProvider({
+                                url: "http://localhost:8545",
+                            });
+                            hardhatProviderName = "besuDev";
                             return Promise.resolve(provider)
                         } catch (error) {
                             return Promise.resolve(undefined)

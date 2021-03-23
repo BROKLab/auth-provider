@@ -23,12 +23,17 @@ import { FunctionFragment, EventFragment, Result } from "@ethersproject/abi";
 interface AuthProviderInterface extends ethers.utils.Interface {
   functions: {
     "authenticate(address)": FunctionFragment;
+    "authenticateSub(address)": FunctionFragment;
     "controllers()": FunctionFragment;
+    "deAuthenticateSub(address)": FunctionFragment;
     "hasAuthenticated(address,uint256)": FunctionFragment;
     "isAuthenticated(address)": FunctionFragment;
+    "isSub(address)": FunctionFragment;
     "lastAuth(address)": FunctionFragment;
     "setControllers(address[])": FunctionFragment;
     "setTTL(uint256)": FunctionFragment;
+    "subActive(address)": FunctionFragment;
+    "subs(address)": FunctionFragment;
   };
 
   encodeFunctionData(
@@ -36,8 +41,16 @@ interface AuthProviderInterface extends ethers.utils.Interface {
     values: [string]
   ): string;
   encodeFunctionData(
+    functionFragment: "authenticateSub",
+    values: [string]
+  ): string;
+  encodeFunctionData(
     functionFragment: "controllers",
     values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "deAuthenticateSub",
+    values: [string]
   ): string;
   encodeFunctionData(
     functionFragment: "hasAuthenticated",
@@ -47,6 +60,7 @@ interface AuthProviderInterface extends ethers.utils.Interface {
     functionFragment: "isAuthenticated",
     values: [string]
   ): string;
+  encodeFunctionData(functionFragment: "isSub", values: [string]): string;
   encodeFunctionData(functionFragment: "lastAuth", values: [string]): string;
   encodeFunctionData(
     functionFragment: "setControllers",
@@ -56,13 +70,23 @@ interface AuthProviderInterface extends ethers.utils.Interface {
     functionFragment: "setTTL",
     values: [BigNumberish]
   ): string;
+  encodeFunctionData(functionFragment: "subActive", values: [string]): string;
+  encodeFunctionData(functionFragment: "subs", values: [string]): string;
 
   decodeFunctionResult(
     functionFragment: "authenticate",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
+    functionFragment: "authenticateSub",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "controllers",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "deAuthenticateSub",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -73,14 +97,25 @@ interface AuthProviderInterface extends ethers.utils.Interface {
     functionFragment: "isAuthenticated",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "isSub", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "lastAuth", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "setControllers",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "setTTL", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "subActive", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "subs", data: BytesLike): Result;
 
-  events: {};
+  events: {
+    "Auth(address,uint256,address)": EventFragment;
+    "AuthSub(address,address)": EventFragment;
+    "AuthSubRemoved(address,address)": EventFragment;
+  };
+
+  getEvent(nameOrSignatureOrTopic: "Auth"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "AuthSub"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "AuthSubRemoved"): EventFragment;
 }
 
 export class AuthProvider extends Contract {
@@ -107,6 +142,16 @@ export class AuthProvider extends Contract {
       overrides?: Overrides
     ): Promise<ContractTransaction>;
 
+    authenticateSub(
+      addr: string,
+      overrides?: Overrides
+    ): Promise<ContractTransaction>;
+
+    "authenticateSub(address)"(
+      addr: string,
+      overrides?: Overrides
+    ): Promise<ContractTransaction>;
+
     controllers(
       overrides?: CallOverrides
     ): Promise<{
@@ -118,6 +163,16 @@ export class AuthProvider extends Contract {
     ): Promise<{
       0: string[];
     }>;
+
+    deAuthenticateSub(
+      addr: string,
+      overrides?: Overrides
+    ): Promise<ContractTransaction>;
+
+    "deAuthenticateSub(address)"(
+      addr: string,
+      overrides?: Overrides
+    ): Promise<ContractTransaction>;
 
     hasAuthenticated(
       addr: string,
@@ -143,6 +198,20 @@ export class AuthProvider extends Contract {
     }>;
 
     "isAuthenticated(address)"(
+      addr: string,
+      overrides?: CallOverrides
+    ): Promise<{
+      0: boolean;
+    }>;
+
+    isSub(
+      addr: string,
+      overrides?: CallOverrides
+    ): Promise<{
+      0: boolean;
+    }>;
+
+    "isSub(address)"(
       addr: string,
       overrides?: CallOverrides
     ): Promise<{
@@ -182,6 +251,36 @@ export class AuthProvider extends Contract {
       time: BigNumberish,
       overrides?: Overrides
     ): Promise<ContractTransaction>;
+
+    subActive(
+      addr: string,
+      overrides?: CallOverrides
+    ): Promise<{
+      0: boolean;
+    }>;
+
+    "subActive(address)"(
+      addr: string,
+      overrides?: CallOverrides
+    ): Promise<{
+      0: boolean;
+    }>;
+
+    subs(
+      addr: string,
+      overrides?: CallOverrides
+    ): Promise<{
+      subAddresses: string[];
+      0: string[];
+    }>;
+
+    "subs(address)"(
+      addr: string,
+      overrides?: CallOverrides
+    ): Promise<{
+      subAddresses: string[];
+      0: string[];
+    }>;
   };
 
   authenticate(
@@ -194,9 +293,29 @@ export class AuthProvider extends Contract {
     overrides?: Overrides
   ): Promise<ContractTransaction>;
 
+  authenticateSub(
+    addr: string,
+    overrides?: Overrides
+  ): Promise<ContractTransaction>;
+
+  "authenticateSub(address)"(
+    addr: string,
+    overrides?: Overrides
+  ): Promise<ContractTransaction>;
+
   controllers(overrides?: CallOverrides): Promise<string[]>;
 
   "controllers()"(overrides?: CallOverrides): Promise<string[]>;
+
+  deAuthenticateSub(
+    addr: string,
+    overrides?: Overrides
+  ): Promise<ContractTransaction>;
+
+  "deAuthenticateSub(address)"(
+    addr: string,
+    overrides?: Overrides
+  ): Promise<ContractTransaction>;
 
   hasAuthenticated(
     addr: string,
@@ -216,6 +335,10 @@ export class AuthProvider extends Contract {
     addr: string,
     overrides?: CallOverrides
   ): Promise<boolean>;
+
+  isSub(addr: string, overrides?: CallOverrides): Promise<boolean>;
+
+  "isSub(address)"(addr: string, overrides?: CallOverrides): Promise<boolean>;
 
   lastAuth(addr: string, overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -244,6 +367,17 @@ export class AuthProvider extends Contract {
     overrides?: Overrides
   ): Promise<ContractTransaction>;
 
+  subActive(addr: string, overrides?: CallOverrides): Promise<boolean>;
+
+  "subActive(address)"(
+    addr: string,
+    overrides?: CallOverrides
+  ): Promise<boolean>;
+
+  subs(addr: string, overrides?: CallOverrides): Promise<string[]>;
+
+  "subs(address)"(addr: string, overrides?: CallOverrides): Promise<string[]>;
+
   callStatic: {
     authenticate(addr: string, overrides?: CallOverrides): Promise<void>;
 
@@ -252,9 +386,23 @@ export class AuthProvider extends Contract {
       overrides?: CallOverrides
     ): Promise<void>;
 
+    authenticateSub(addr: string, overrides?: CallOverrides): Promise<void>;
+
+    "authenticateSub(address)"(
+      addr: string,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
     controllers(overrides?: CallOverrides): Promise<string[]>;
 
     "controllers()"(overrides?: CallOverrides): Promise<string[]>;
+
+    deAuthenticateSub(addr: string, overrides?: CallOverrides): Promise<void>;
+
+    "deAuthenticateSub(address)"(
+      addr: string,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
     hasAuthenticated(
       addr: string,
@@ -274,6 +422,10 @@ export class AuthProvider extends Contract {
       addr: string,
       overrides?: CallOverrides
     ): Promise<boolean>;
+
+    isSub(addr: string, overrides?: CallOverrides): Promise<boolean>;
+
+    "isSub(address)"(addr: string, overrides?: CallOverrides): Promise<boolean>;
 
     lastAuth(addr: string, overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -298,9 +450,26 @@ export class AuthProvider extends Contract {
       time: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
+
+    subActive(addr: string, overrides?: CallOverrides): Promise<boolean>;
+
+    "subActive(address)"(
+      addr: string,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
+
+    subs(addr: string, overrides?: CallOverrides): Promise<string[]>;
+
+    "subs(address)"(addr: string, overrides?: CallOverrides): Promise<string[]>;
   };
 
-  filters: {};
+  filters: {
+    Auth(authenticated: null, timestamp: null, controller: null): EventFilter;
+
+    AuthSub(subAddress: null, parentAddress: null): EventFilter;
+
+    AuthSubRemoved(subAddress: null, parentAddress: null): EventFilter;
+  };
 
   estimateGas: {
     authenticate(addr: string, overrides?: Overrides): Promise<BigNumber>;
@@ -310,9 +479,23 @@ export class AuthProvider extends Contract {
       overrides?: Overrides
     ): Promise<BigNumber>;
 
+    authenticateSub(addr: string, overrides?: Overrides): Promise<BigNumber>;
+
+    "authenticateSub(address)"(
+      addr: string,
+      overrides?: Overrides
+    ): Promise<BigNumber>;
+
     controllers(overrides?: CallOverrides): Promise<BigNumber>;
 
     "controllers()"(overrides?: CallOverrides): Promise<BigNumber>;
+
+    deAuthenticateSub(addr: string, overrides?: Overrides): Promise<BigNumber>;
+
+    "deAuthenticateSub(address)"(
+      addr: string,
+      overrides?: Overrides
+    ): Promise<BigNumber>;
 
     hasAuthenticated(
       addr: string,
@@ -332,6 +515,13 @@ export class AuthProvider extends Contract {
     ): Promise<BigNumber>;
 
     "isAuthenticated(address)"(
+      addr: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    isSub(addr: string, overrides?: CallOverrides): Promise<BigNumber>;
+
+    "isSub(address)"(
       addr: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
@@ -359,6 +549,20 @@ export class AuthProvider extends Contract {
       time: BigNumberish,
       overrides?: Overrides
     ): Promise<BigNumber>;
+
+    subActive(addr: string, overrides?: CallOverrides): Promise<BigNumber>;
+
+    "subActive(address)"(
+      addr: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    subs(addr: string, overrides?: CallOverrides): Promise<BigNumber>;
+
+    "subs(address)"(
+      addr: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
   };
 
   populateTransaction: {
@@ -372,9 +576,29 @@ export class AuthProvider extends Contract {
       overrides?: Overrides
     ): Promise<PopulatedTransaction>;
 
+    authenticateSub(
+      addr: string,
+      overrides?: Overrides
+    ): Promise<PopulatedTransaction>;
+
+    "authenticateSub(address)"(
+      addr: string,
+      overrides?: Overrides
+    ): Promise<PopulatedTransaction>;
+
     controllers(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     "controllers()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    deAuthenticateSub(
+      addr: string,
+      overrides?: Overrides
+    ): Promise<PopulatedTransaction>;
+
+    "deAuthenticateSub(address)"(
+      addr: string,
+      overrides?: Overrides
+    ): Promise<PopulatedTransaction>;
 
     hasAuthenticated(
       addr: string,
@@ -394,6 +618,16 @@ export class AuthProvider extends Contract {
     ): Promise<PopulatedTransaction>;
 
     "isAuthenticated(address)"(
+      addr: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    isSub(
+      addr: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    "isSub(address)"(
       addr: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
@@ -426,6 +660,26 @@ export class AuthProvider extends Contract {
     "setTTL(uint256)"(
       time: BigNumberish,
       overrides?: Overrides
+    ): Promise<PopulatedTransaction>;
+
+    subActive(
+      addr: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    "subActive(address)"(
+      addr: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    subs(
+      addr: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    "subs(address)"(
+      addr: string,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
   };
 }
